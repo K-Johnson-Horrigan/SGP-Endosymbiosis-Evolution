@@ -26,7 +26,8 @@ donate_count_data <- read.table("donate_data_endo_on.dat", h=T)
 # for either data source
 donate_count_data$vt <- as.factor(donate_count_data$vt)
 donate_count_data$ecto <- ifelse((donate_count_data$ecto==1),"Ectosymbiosis on","Ectosymbiosis off")
-donate_count_data <- subset(donate_count_data, donate_count_data$endo==1) 
+donate_count_data <- subset(donate_count_data, donate_count_data$endo==1)
+donate_count_data <- subset(donate_count_data, donate_count_data$vt==0.4)
 donate_count_data$shtr <- paste0("SHTR", donate_count_data$shtr)
 donate_count_data$shtr <- factor(donate_count_data$shtr, levels = c("SHTR100", "SHTR250", "SHTR500", "SHTR750","SHTR1000"))
 
@@ -49,18 +50,21 @@ ggplot(over_time_subset, aes(x=update, y=h_sym_count, group=shtr, colour=shtr)) 
 ####  code for counts of endosymbionts at timepoint ####  
 
 # difference by horizontal transmission resource threshold
-# only look at top and bottom shtr values
+# only look at 2 shtr values
 partway <- subset(donate_count_data, donate_count_data$update == 5000 & 
                  (donate_count_data$shtr=="SHTR100" | donate_count_data$shtr=="SHTR250") &
-                 (donate_count_data$vt == 0.4))
+                 (donate_count_data$vt == 0.4) &
+                   donate_count_data$ecto=="Ectosymbiosis off")
 mean(subset(partway, partway$shtr=="SHTR250")$h_sym_count)
 mean(subset(partway, partway$shtr=="SHTR100")$h_sym_count)
 wilcox.test(h_sym_count ~ shtr, data = partway)
 
 
 # difference by horizontal transmission resource threshold
-# include all VTs and all SHTRs
-partway <- subset(donate_count_data, donate_count_data$update == 5000)
+# include all VTs and all SHTR
+partway <- subset(donate_count_data, donate_count_data$update == 5000 & 
+                    (donate_count_data$shtr=="SHTR250") &
+                    (donate_count_data$vt == 0.4))
 mean(subset(partway, partway$ecto=="Ectosymbiosis on")$h_sym_count)
 mean(subset(partway, partway$ecto=="Ectosymbiosis off")$h_sym_count)
 wilcox.test(h_sym_count ~ ecto, data = partway)
@@ -90,11 +94,11 @@ nrow(endo_end_subset)
 nrow(subset(endo_end_subset, point_ratio > 1))
 
 # By ectosymbiosis
-mean(subset(endo_end_subset, endo_end_subset$ecto=="Ectosymbiosis on")$point_ratio)
-mean(subset(endo_end_subset, endo_end_subset$ecto=="Ectosymbiosis off")$point_ratio)
+shtr100 <- subset(endo_end_subset, endo_end_subset$shtr=="SHTR1000")
+mean(subset(shtr100, ecto=="Ectosymbiosis on")$point_ratio)
+mean(subset(shtr100, ecto=="Ectosymbiosis off")$point_ratio)
 
-wilcox.test(point_ratio ~ ecto, data = endo_end_subset)
-boot(point_ratio ~ ecto, data = endo_end_subset)
+wilcox.test(point_ratio ~ ecto, data = shtr100)
 
 # Only ectosymbiosis off, by SHTR
 ecto_off <- subset(endo_end_subset, endo_end_subset$ecto=="Ectosymbiosis off" & 
